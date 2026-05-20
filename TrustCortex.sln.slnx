@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="TrustCortex.Api/TrustCortex.Api.csproj" />
+  <Project Path="TrustCortex.Application/TrustCortex.Application.csproj" />
+  <Project Path="TrustCortex.Infrastructure/TrustCortex.Infrastructure.csproj" />
+  <Project Path="TrustCortex.Tests/TrustCortex.Tests.csproj" />
+</Solution>

@@ -1,0 +1,110 @@
+# =========================
+# Build / Output
+# =========================
+bin/
+obj/
+out/
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# Rider / JetBrains
+# =========================
+.idea/
+
+# =========================
+# VS Code / Cursor
+# =========================
+.vscode/
+.cursor/
+
+# =========================
+# Test Results
+# =========================
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+packages/
+.nuget/
+
+# =========================
+# Environment Files
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# ASP.NET Secrets
+# =========================
+secrets.json
+
+# =========================
+# App Settings Secrets
+# =========================
+appsettings.Development.json
+appsettings.Local.json
+
+# =========================
+# Azure / Local Config
+# =========================
+local.settings.json
+
+# =========================
+# Node Modules (future React UI)
+# =========================
+node_modules/
+
+# =========================
+# Generated Files
+# =========================
+Generated/
+GeneratedFiles/
+
+# =========================
+# Publish Output
+# =========================
+publish/
+
+# =========================
+# Temporary Files
+# =========================
+tmp/
+temp/
+
+# =========================
+# AI Generated Artifacts
+# =========================
+ai-output/
+ai-cache/
+
+# =========================
+# Terraform (future infra)
+# =========================
+.terraform/
+*.tfstate
+*.tfstate.*
