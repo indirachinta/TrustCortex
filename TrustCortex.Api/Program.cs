@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTrustCortexApplication();
-builder.Services.AddTrustCortexInfrastructure();
+builder.Services.AddTrustCortexInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
@@ -20,5 +20,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

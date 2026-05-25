@@ -11,6 +11,10 @@ public sealed class AskController(AskQuestionUseCase askQuestionUseCase) : Contr
     [HttpPost]
     public async Task<IActionResult> Ask(AskRequest request, CancellationToken cancellationToken)
     {
+        if(!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         try
         {
             var response = await askQuestionUseCase.ExecuteAsync(request, cancellationToken);
