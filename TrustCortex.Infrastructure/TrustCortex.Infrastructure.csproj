@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Azure.Search.Documents" Version="12.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
     <ProjectReference Include="..\TrustCortex.Application\TrustCortex.Application.csproj" />
   </ItemGroup>

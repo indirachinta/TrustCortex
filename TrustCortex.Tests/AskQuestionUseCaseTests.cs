@@ -4,6 +4,7 @@ using TrustCortex.Application.UseCases;
 using TrustCortex.Application.Validation;
 using TrustCortex.Infrastructure.Answers;
 using TrustCortex.Infrastructure.Audit;
+using TrustCortex.Infrastructure.Mocks;
 using TrustCortex.Infrastructure.Safety;
 using TrustCortex.Infrastructure.Search;
 
@@ -50,7 +51,7 @@ public sealed class AskQuestionUseCaseTests
     {
         var pipeline = new GovernancePipeline(
             new PromptSafetyService(),
-            new MockSearchService(),
+            new MockSearchService(new SampleDocumentLoader()),
             new PolicyEngine());
 
         return new AskQuestionUseCase(

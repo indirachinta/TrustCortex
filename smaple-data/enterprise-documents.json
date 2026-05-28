@@ -1,0 +1,38 @@
+[
+    {
+      "id": "doc-001",
+      "title": "Application Insights PII Logging Policy",
+      "content": "Customer PII such as SSN, full credit card numbers, passwords, access tokens, and sensitive personal identifiers must not be logged in Application Insights. Engineering teams may log correlation IDs, error codes, operation IDs, and non-sensitive diagnostic metadata. If PII is accidentally logged, the incident must be reported to Compliance and logs must be purged according to retention policy.",
+      "source": "security-policy.pdf",
+      "sensitivityLevel": "Internal",
+      "department": "Security",
+      "allowedRoles": ["Engineer", "Manager", "ComplianceOfficer"]
+    },
+    {
+      "id": "doc-002",
+      "title": "Checkout Service Production RCA",
+      "content": "Checkout-service experienced elevated failures after deployment v2.3.1. Logs showed NullReferenceException in payment validation flow. Resolution included rollback to v2.3.0, hotfix deployment, and additional null checks around payment profile enrichment.",
+      "source": "checkout-rca.pdf",
+      "sensitivityLevel": "Confidential",
+      "department": "Operations",
+      "allowedRoles": ["Manager", "ComplianceOfficer"]
+    },
+    {
+      "id": "doc-003",
+      "title": "Restricted Payroll Incident Report",
+      "content": "Payroll incident involved restricted employee compensation data. Access is limited to ComplianceOfficer role. Details must not be exposed to engineering, general management, or support roles without explicit approval.",
+      "source": "payroll-incident.pdf",
+      "sensitivityLevel": "Restricted",
+      "department": "HR",
+      "allowedRoles": ["ComplianceOfficer"]
+    },
+    {
+      "id": "doc-004",
+      "title": "Azure Service Bus Architecture Decision",
+      "content": "Azure Service Bus was selected for order processing workflows because it supports durable messaging, dead-letter queues, retries, competing consumers, and enterprise-grade asynchronous communication. Event Grid was not selected because the workflow required queue-based processing and reliable command handling.",
+      "source": "architecture-decision-record.md",
+      "sensitivityLevel": "Internal",
+      "department": "Architecture",
+      "allowedRoles": ["Engineer", "Manager", "ComplianceOfficer"]
+    }
+  ]
