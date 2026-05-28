@@ -15,7 +15,13 @@ public sealed class GovernancePipeline(
         {
             return new GovernancePipelineResult(
                 PromptSafetyPassed: false,
-                PolicyEvaluation: new PolicyEvaluationResult(false, [], 0, promptSafety.BlockedReason));
+                PolicyEvaluation: new PolicyEvaluationResult(
+                    Passed: false,
+                    AllowedDocuments: [],
+                    DocumentsRetrieved: 0,
+                    DocumentsApproved: 0,
+                    DocumentsBlocked: 0,
+                    BlockedReason: promptSafety.BlockedReason));
         }
 
         var documents = await searchService.SearchAsync(request.Question, cancellationToken);

@@ -28,6 +28,8 @@ public sealed class PolicyEngine : IPolicyEngine
         return new PolicyEvaluationResult(
             Passed: blockedCount == 0,
             AllowedDocuments: allowedDocuments,
+            DocumentsRetrieved: documents.Count,
+            DocumentsApproved: allowedDocuments.Length,
             DocumentsBlocked: blockedCount,
             BlockedReason: blockedCount > 0 ? "RestrictedSensitivity" : null);
     }

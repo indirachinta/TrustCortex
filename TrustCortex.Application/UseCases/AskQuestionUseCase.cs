@@ -16,15 +16,16 @@ public sealed class AskQuestionUseCase(
         AskRequestValidator.Validate(request);
 
         var governance = await governancePipeline.RunAsync(request, cancellationToken);
+        var approvedDocuments = governance.PolicyEvaluation.AllowedDocuments;
 
         var answer = governance.PromptSafetyPassed
             ? await answerService.GenerateAnswerAsync(
                 request.Question,
-                governance.PolicyEvaluation.AllowedDocuments,
+                approvedDocuments,
                 cancellationToken)
             : new AnswerDraft("I cannot answer that request because it violates prompt safety rules.", []);
 
-        var validation = responseValidator.Validate(answer, governance.PolicyEvaluation.AllowedDocuments);
+        var validation = responseValidator.Validate(answer, approvedDocuments);
 
         var auditLogged = await auditLogger.LogAsync(
             new AuditEvent(
@@ -32,6 +33,8 @@ public sealed class AskQuestionUseCase(
                 request.UserRole,
                 governance.PolicyEvaluation.Passed,
                 governance.PromptSafetyPassed,
+                governance.PolicyEvaluation.DocumentsRetrieved,
+                governance.PolicyEvaluation.DocumentsApproved,
                 governance.PolicyEvaluation.DocumentsBlocked,
                 governance.PolicyEvaluation.BlockedReason,
                 validation.IsGrounded),
@@ -41,8 +44,10 @@ public sealed class AskQuestionUseCase(
             answer.Answer,
             answer.Citations,
             new GovernanceMetadataDto(
-                PolicyCheckPassed: governance.PolicyEvaluation.Passed,
                 PromptSafetyPassed: governance.PromptSafetyPassed,
+                PolicyCheckPassed: governance.PolicyEvaluation.Passed,
+                DocumentsRetrieved: governance.PolicyEvaluation.DocumentsRetrieved,
+                DocumentsApproved: governance.PolicyEvaluation.DocumentsApproved,
                 DocumentsBlocked: governance.PolicyEvaluation.DocumentsBlocked,
                 BlockedReason: governance.PolicyEvaluation.BlockedReason,
                 ResponseGrounded: validation.IsGrounded,

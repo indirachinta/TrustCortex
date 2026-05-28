@@ -1,8 +1,10 @@
 namespace TrustCortex.Application.DTOs;
 
 public sealed record GovernanceMetadataDto(
-    bool PolicyCheckPassed,
     bool PromptSafetyPassed,
+    bool PolicyCheckPassed,
+    int DocumentsRetrieved,
+    int DocumentsApproved,
     int DocumentsBlocked,
     string? BlockedReason,
     bool ResponseGrounded,

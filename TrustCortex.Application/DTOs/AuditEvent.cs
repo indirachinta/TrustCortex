@@ -5,6 +5,8 @@ public sealed record AuditEvent(
     string UserRole,
     bool PolicyCheckPassed,
     bool PromptSafetyPassed,
+    int DocumentsRetrieved,
+    int DocumentsApproved,
     int DocumentsBlocked,
     string? BlockedReason,
     bool ResponseGrounded);
