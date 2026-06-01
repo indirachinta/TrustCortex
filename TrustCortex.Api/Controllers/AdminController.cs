@@ -34,4 +34,44 @@ public class AdminController : ControllerBase
             searchProvider = provider
         });
     }
+
+    [HttpGet("runtime-status")]
+    public IActionResult GetRuntimeStatus()
+    {
+        var searchProvider = _configuration["SearchProvider"] ?? "Mock";
+        var answerProvider = _configuration["AnswerProvider"] ?? "Mock";
+        var azureSearch = _configuration.GetSection("AzureSearch");
+        var azureFoundry = _configuration.GetSection("AzureFoundry");
+        var azureSearchIndexName = azureSearch["IndexName"] ?? "trustcortex-documents";
+        var azureFoundryDeploymentName = azureFoundry["DeploymentName"] ?? string.Empty;
+
+        return Ok(new
+        {
+            searchProvider,
+            answerProvider,
+            azureSearch = new
+            {
+                configured = HasValue(azureSearch["Endpoint"]) && HasValue(azureSearch["AdminKey"]),
+                indexName = azureSearchIndexName
+            },
+            azureFoundry = new
+            {
+                configured =
+                    HasValue(azureFoundry["Endpoint"]) &&
+                    HasValue(azureFoundry["ApiKey"]) &&
+                    HasValue(azureFoundryDeploymentName),
+                deploymentName = azureFoundryDeploymentName
+            },
+            costSafety = new
+            {
+                mockSearchDefault = string.Equals(searchProvider, "Mock", StringComparison.OrdinalIgnoreCase),
+                mockAnswerDefault = string.Equals(answerProvider, "Mock", StringComparison.OrdinalIgnoreCase)
+            }
+        });
+    }
+
+    private static bool HasValue(string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value);
+    }
 }

@@ -12,6 +12,8 @@ public sealed class AzureFoundryAnswerService : IAnswerService
 {
     private const string MissingConfigurationMessage =
         "AzureFoundry answer provider is selected, but Endpoint/ApiKey/DeploymentName is missing.";
+    private const string InsufficientApprovedInformationMessage =
+        "I do not have enough approved information to answer that question.";
 
     private readonly AzureFoundryOptions _options;
     private readonly GroundedPromptBuilder _promptBuilder;
@@ -45,9 +47,7 @@ public sealed class AzureFoundryAnswerService : IAnswerService
     {
         if (documents.Count == 0)
         {
-            return new AnswerDraft(
-                "I do not have enough approved information to answer that question.",
-                []);
+            return new AnswerDraft(InsufficientApprovedInformationMessage, []);
         }
 
         var prompt = _promptBuilder.Build(question, documents);
@@ -75,14 +75,17 @@ public sealed class AzureFoundryAnswerService : IAnswerService
             "application/json");
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
-        var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-
         if (!response.IsSuccessStatusCode)
         {
+            _logger.LogError(
+                "AzureFoundry answer generation failed with status {StatusCode}.",
+                (int)response.StatusCode);
+
             throw new InvalidOperationException(
-                $"AzureFoundry answer generation failed with status {(int)response.StatusCode}: {responseContent}");
+                $"AzureFoundry answer generation failed with status {(int)response.StatusCode}.");
         }
 
+        var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
         var generatedAnswer = ExtractAnswer(responseContent);
         var citations = documents
             .Select(document => new CitationDto(document.Id, document.Title, document.Content))
@@ -95,9 +98,12 @@ public sealed class AzureFoundryAnswerService : IAnswerService
     {
         var baseEndpoint = _options.Endpoint.TrimEnd('/');
         var deploymentName = Uri.EscapeDataString(_options.DeploymentName);
+        var apiVersion = Uri.EscapeDataString(
+            string.IsNullOrWhiteSpace(_options.ApiVersion)
+                ? "2024-10-21"
+                : _options.ApiVersion);
 
-        // TODO: Confirm the target Azure Foundry/OpenAI API version before enabling this provider in production.
-        return new Uri($"{baseEndpoint}/openai/deployments/{deploymentName}/chat/completions?api-version=2024-10-21");
+        return new Uri($"{baseEndpoint}/openai/deployments/{deploymentName}/chat/completions?api-version={apiVersion}");
     }
 
     private static string ExtractAnswer(string responseContent)
@@ -107,13 +113,13 @@ public sealed class AzureFoundryAnswerService : IAnswerService
         var choices = document.RootElement.GetProperty("choices");
         if (choices.GetArrayLength() == 0)
         {
-            return "I do not have enough approved information to answer that question.";
+            return InsufficientApprovedInformationMessage;
         }
 
         return choices[0]
             .GetProperty("message")
             .GetProperty("content")
             .GetString()
-            ?? "I do not have enough approved information to answer that question.";
+            ?? InsufficientApprovedInformationMessage;
     }
 }

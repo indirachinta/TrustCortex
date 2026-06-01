@@ -45,6 +45,7 @@ public static class DependencyInjection
                 options.Endpoint = section["Endpoint"] ?? string.Empty;
                 options.ApiKey = section["ApiKey"] ?? string.Empty;
                 options.DeploymentName = section["DeploymentName"] ?? string.Empty;
+                options.ApiVersion = section["ApiVersion"] ?? "2024-10-21";
                 options.MaxTokens = int.TryParse(section["MaxTokens"], out var maxTokens)
                     ? maxTokens
                     : 600;

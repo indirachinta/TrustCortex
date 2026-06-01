@@ -8,23 +8,32 @@ MockAnswerService or Azure Foundry / Azure OpenAI in future execution.
 ## Correct Flow
 
 User Question
- ↓
+  |
+  v
 Input Safety
- ↓
+  |
+  v
 Enterprise Retrieval
- ↓
+  |
+  v
 Retrieved Documents
- ↓
+  |
+  v
 Policy + Governance Filtering
- ↓
+  |
+  v
 Approved Context
- ↓
+  |
+  v
 Answer Generation Provider
- ↓
+  |
+  v
 Response Validation
- ↓
+  |
+  v
 Audit Logging
- ↓
+  |
+  v
 Governed Response
 
 ## Why Approved Context Matters
@@ -61,3 +70,18 @@ Azure resources for Foundry/OpenAI are not required for Day 3.
 - Approved context is converted into a grounded prompt.
 - Blocked documents are never passed to answer generation.
 - README documents V3 architecture.
+
+## V4 Readiness Notes
+
+V4 keeps the V3 answer provider abstraction and makes the complete runtime mode
+matrix explicit:
+
+- Local Safe Mode uses Mock retrieval and Mock answer generation.
+- Azure Retrieval Mode uses Azure AI Search retrieval and Mock answer
+  generation.
+- Full Azure AI Mode uses Azure AI Search retrieval and AzureFoundry answer
+  generation.
+
+Azure AI Search remains retrieval only. Azure Foundry / Azure OpenAI remains
+answer generation only. TrustCortex continues to own governance orchestration
+and must pass only approved context to the configured answer provider.

@@ -1,11 +1,13 @@
+Update README.md for final V4 demo positioning.
+
+README should clearly explain:
+
 # TrustCortex
 
 Policy-aware governed enterprise AI platform on Azure.
 
 ## Problem
-
 Enterprises want AI over internal knowledge, but ungoverned AI creates risks:
-
 - sensitive data leakage
 - hallucinated policy answers
 - prompt injection
@@ -13,9 +15,7 @@ Enterprises want AI over internal knowledge, but ungoverned AI creates risks:
 - lack of auditability
 
 ## Solution
-
 TrustCortex applies governance across the AI lifecycle:
-
 - input safety
 - enterprise retrieval
 - document-level policy filtering
@@ -26,52 +26,37 @@ TrustCortex applies governance across the AI lifecycle:
 ## Architecture
 
 User Question
-  |
-  v
+ ↓
 Input Safety / Prompt Validation
-  |
-  v
+ ↓
 Azure AI Search or Mock Retrieval
-  |
-  v
+ ↓
 Retrieved Documents
-  |
-  v
+ ↓
 Policy + Governance Filtering
-  |
-  v
+ ↓
 Approved Context
-  |
-  v
+ ↓
 Mock or AzureFoundry Answer Generation
-  |
-  v
+ ↓
 Response Validation
-  |
-  v
+ ↓
 Audit Logging
-  |
-  v
+ ↓
 Governed Response
 
 ## Provider Modes
 
 ### Local Safe Mode
-
 SearchProvider = Mock
-
 AnswerProvider = Mock
 
 ### Azure Retrieval Mode
-
 SearchProvider = Azure
-
 AnswerProvider = Mock
 
 ### Full Azure AI Mode
-
 SearchProvider = Azure
-
 AnswerProvider = AzureFoundry
 
 ## Azure Services
@@ -88,13 +73,9 @@ Planned governance extension:
 - App Insights for audit telemetry
 
 ## Cost Safety
-
 Mock mode is the default.
-
 Azure services are enabled only through configuration.
-
-Secrets are stored using user-secrets or secure configuration, not
-appsettings.json.
+Secrets are stored using user-secrets or secure configuration, not appsettings.json.
 
 ## Runtime Diagnostics
 
@@ -102,11 +83,4 @@ GET /api/admin/runtime-status
 
 Shows selected providers and configuration readiness without exposing secrets.
 
-## Documentation
-
-- [Architecture](specs/02-architecture.md)
-- [Governance Policy](specs/03-governance-policy.md)
-- [V2 Azure AI Search Integration](specs/05-v2-azure-search.md)
-- [V2 Governed RAG Flow Correction](specs/06-v2-correction-governed-rag-flow.md)
-- [V3 Azure Foundry Answer Generation Layer](specs/07-v3-foundry-answer-generation.md)
-- [V4 Final Runtime Readiness](specs/08-v4-final-runtime-readiness.md)
+Do not include actual keys or secrets.

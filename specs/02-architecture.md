@@ -71,6 +71,59 @@ Provider selection is configuration-driven:
 - AnswerProvider = Mock uses MockAnswerService.
 - AnswerProvider = AzureFoundry uses AzureFoundryAnswerService.
 
+## V4 Runtime Readiness Architecture
+
+V4 prepares TrustCortex for final demo execution using explicit provider modes.
+
+Runtime modes:
+
+- Local Safe Mode: SearchProvider = Mock, AnswerProvider = Mock.
+- Azure Retrieval Mode: SearchProvider = Azure, AnswerProvider = Mock.
+- Full Azure AI Mode: SearchProvider = Azure, AnswerProvider = AzureFoundry.
+
+Design responsibilities:
+
+- Azure AI Search is responsible for retrieval only.
+- Azure Foundry / Azure OpenAI is responsible for answer generation only.
+- TrustCortex owns governance orchestration between retrieval and answer
+  generation.
+- Blocked documents must never be sent to the answer generation provider.
+- Mock provider defaults must remain available for cost-controlled local
+  execution.
+- Runtime diagnostics should expose selected providers without exposing
+  Endpoint, ApiKey, DeploymentName, or other secrets.
+
+Final demo flow:
+
+User Question
+  |
+  v
+Input Safety / Prompt Validation
+  |
+  v
+Azure AI Search or Mock Retrieval
+  |
+  v
+Retrieved Documents
+  |
+  v
+Policy + Governance Filtering
+  |
+  v
+Approved Context
+  |
+  v
+Mock or AzureFoundry Answer Generation
+  |
+  v
+Response Validation
+  |
+  v
+Audit Logging
+  |
+  v
+Governed Response
+
 ## V1 Scope
 
 V1 uses:
