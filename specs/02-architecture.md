@@ -48,6 +48,29 @@ Governed Response
 - Audit logging records the decision trail after answer generation and
   validation.
 
+## V3 Answer Generation Architecture
+
+V3 introduces a provider-based answer generation layer.
+
+- Azure AI Search is the retrieval layer. It returns candidate enterprise
+  documents for the user's question.
+- TrustCortex governance sits between retrieval and answer generation. It
+  filters retrieved documents using policy metadata and produces approved
+  context.
+- Foundry/OpenAI is the reasoning layer. It should only receive the user's
+  question plus approved context that already passed TrustCortex governance.
+- MockAnswerService remains the default answer provider for cost safety.
+
+TrustCortex should not use Azure OpenAI "On Your Data" directly in V3 because
+that would let the model service perform retrieval internally. V3 keeps
+retrieval in the Application flow so document-level governance can run before
+any content is sent to the answer generation provider.
+
+Provider selection is configuration-driven:
+
+- AnswerProvider = Mock uses MockAnswerService.
+- AnswerProvider = AzureFoundry uses AzureFoundryAnswerService.
+
 ## V1 Scope
 
 V1 uses:

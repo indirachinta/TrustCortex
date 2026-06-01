@@ -35,7 +35,33 @@ public static class DependencyInjection
             services.AddScoped<ISearchIndexInitializer, MockSearchIndexInitializer>();
         }
 
-        services.AddScoped<IAnswerService, MockAnswerService>();
+        var answerProvider = configuration["AnswerProvider"] ?? "Mock";
+
+        if (string.Equals(answerProvider, "AzureFoundry", StringComparison.OrdinalIgnoreCase))
+        {
+            services.Configure<AzureFoundryOptions>(options =>
+            {
+                var section = configuration.GetSection("AzureFoundry");
+                options.Endpoint = section["Endpoint"] ?? string.Empty;
+                options.ApiKey = section["ApiKey"] ?? string.Empty;
+                options.DeploymentName = section["DeploymentName"] ?? string.Empty;
+                options.MaxTokens = int.TryParse(section["MaxTokens"], out var maxTokens)
+                    ? maxTokens
+                    : 600;
+                options.Temperature = double.TryParse(section["Temperature"], out var temperature)
+                    ? temperature
+                    : 0.2;
+            });
+
+            services.AddSingleton<HttpClient>();
+            services.AddScoped<GroundedPromptBuilder>();
+            services.AddScoped<IAnswerService, AzureFoundryAnswerService>();
+        }
+        else
+        {
+            services.AddScoped<IAnswerService, MockAnswerService>();
+        }
+
         services.AddScoped<IPromptSafetyService, PromptSafetyService>();
         services.AddSingleton<IAuditLogger, InMemoryAuditLogger>();
 
