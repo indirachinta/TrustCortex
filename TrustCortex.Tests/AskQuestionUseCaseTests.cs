@@ -139,6 +139,48 @@ public sealed class AskQuestionUseCaseTests
             document => string.Equals(document.Sensitivity, "Restricted", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Fact]
+    public async Task AskQuestionUseCase_AzureFoundryProviderReceivesOnlyApprovedContext()
+    {
+        var engineerAnswerService = new CapturingAnswerService();
+        var engineerUseCase = CreateUseCase(
+            new FixedSearchService(GetPolicyTestDocuments()),
+            engineerAnswerService);
+
+        var engineerResponse = await engineerUseCase.ExecuteAsync(
+            new AskRequest("restricted payroll incident report", "Engineer"),
+            CancellationToken.None);
+
+        Assert.True(engineerResponse.Governance.PromptSafetyPassed);
+        Assert.True(engineerResponse.Governance.DocumentsBlocked > 0);
+        Assert.Equal(1, engineerAnswerService.CallCount);
+        Assert.DoesNotContain(
+            engineerAnswerService.CapturedDocuments,
+            document => string.Equals(document.Sensitivity, "Restricted", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(
+            engineerAnswerService.CapturedDocuments,
+            document => document.Title.Contains("Restricted Payroll", StringComparison.OrdinalIgnoreCase));
+
+        var complianceOfficerAnswerService = new CapturingAnswerService();
+        var complianceOfficerUseCase = CreateUseCase(
+            new FixedSearchService(GetPolicyTestDocuments()),
+            complianceOfficerAnswerService);
+
+        var complianceOfficerResponse = await complianceOfficerUseCase.ExecuteAsync(
+            new AskRequest("restricted payroll incident report", "ComplianceOfficer"),
+            CancellationToken.None);
+
+        Assert.True(complianceOfficerResponse.Governance.PromptSafetyPassed);
+        Assert.Equal(0, complianceOfficerResponse.Governance.DocumentsBlocked);
+        Assert.Equal(1, complianceOfficerAnswerService.CallCount);
+        Assert.Contains(
+            complianceOfficerAnswerService.CapturedDocuments,
+            document => string.Equals(document.Sensitivity, "Restricted", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            complianceOfficerAnswerService.CapturedDocuments,
+            document => document.Title.Contains("Restricted Payroll", StringComparison.OrdinalIgnoreCase));
+    }
+
     private static AskQuestionUseCase CreateUseCase(
         ISearchService? searchService = null,
         IAnswerService? answerService = null)

@@ -90,3 +90,12 @@ Not required for V4 completion:
 - AzureFoundryAnswerService validates configuration safely.
 - Mock mode continues to work without Azure cost.
 - Full Azure mode is configuration-driven.
+
+## Follow-on V5 Scope
+
+V5 moves from final runtime readiness into real Azure execution readiness:
+
+- SearchProvider = Azure
+- AnswerProvider = AzureFoundry
+
+The V5 spec is defined in [09-v5-real-azure-execution.md](09-v5-real-azure-execution.md).

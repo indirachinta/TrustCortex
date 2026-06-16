@@ -45,6 +45,8 @@ public class AdminController : ControllerBase
         var azureSearchIndexName = azureSearch["IndexName"] ?? "trustcortex-documents";
         var azureFoundryDeploymentName = azureFoundry["DeploymentName"] ?? string.Empty;
 
+        // Runtime status reports configuration readiness only. It must not call
+        // Azure services or expose endpoints, keys, deployment names, or secrets.
         return Ok(new
         {
             searchProvider,
@@ -59,8 +61,7 @@ public class AdminController : ControllerBase
                 configured =
                     HasValue(azureFoundry["Endpoint"]) &&
                     HasValue(azureFoundry["ApiKey"]) &&
-                    HasValue(azureFoundryDeploymentName),
-                deploymentName = azureFoundryDeploymentName
+                    HasValue(azureFoundryDeploymentName)
             },
             costSafety = new
             {

@@ -10,8 +10,8 @@ public sealed class GroundedPromptBuilder
         You are TrustCortex, a governed enterprise AI assistant.
         Answer only using approved context.
         If approved context is insufficient, say you do not have enough approved information.
-        Do not mention blocked or restricted documents.
-        Include concise answer and cite sources when possible.
+        Do not mention blocked or restricted documents that are not present in approved context.
+        Cite sources from approved context.
         """;
 
     public string Build(string question, IReadOnlyList<SearchDocument> approvedDocuments)
@@ -39,7 +39,7 @@ public sealed class GroundedPromptBuilder
             prompt.AppendLine($"[Document {index + 1}]");
             prompt.AppendLine($"Title: {document.Title}");
             prompt.AppendLine($"Source: {document.Source}");
-            prompt.AppendLine($"Sensitivity: {document.Sensitivity}");
+            prompt.AppendLine($"Sensitivity level: {document.Sensitivity}");
             prompt.AppendLine("Content:");
             prompt.AppendLine(document.Content);
             prompt.AppendLine();

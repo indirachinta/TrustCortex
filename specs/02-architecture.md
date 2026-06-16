@@ -124,6 +124,23 @@ Audit Logging
   v
 Governed Response
 
+## V5 Real Azure Execution Architecture
+
+V5 prepares TrustCortex to run in full Azure AI mode:
+
+- SearchProvider = Azure
+- AnswerProvider = AzureFoundry
+
+Azure AI Search retrieves candidate enterprise documents. TrustCortex then
+applies input safety, role and sensitivity filtering, approved context
+construction, response validation, and audit logging. Azure Foundry / Azure
+OpenAI performs answer generation only and must receive only approved context
+from TrustCortex.
+
+V5 must not use Azure OpenAI "On Your Data". TrustCortex must control retrieval
+and filtering before model generation so governance remains between enterprise
+retrieval and answer generation.
+
 ## V1 Scope
 
 V1 uses:

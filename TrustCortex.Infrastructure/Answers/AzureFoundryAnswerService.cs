@@ -14,6 +14,8 @@ public sealed class AzureFoundryAnswerService : IAnswerService
         "AzureFoundry answer provider is selected, but Endpoint/ApiKey/DeploymentName is missing.";
     private const string InsufficientApprovedInformationMessage =
         "I do not have enough approved information to answer that question.";
+    private const string UnexpectedResponseMessage =
+        "AzureFoundry answer generation returned an unexpected response shape.";
 
     private readonly AzureFoundryOptions _options;
     private readonly GroundedPromptBuilder _promptBuilder;
@@ -45,11 +47,14 @@ public sealed class AzureFoundryAnswerService : IAnswerService
         IReadOnlyList<SearchDocument> documents,
         CancellationToken cancellationToken)
     {
+        // Azure AI Search retrieves candidate documents; TrustCortex policy filtering
+        // happens before this service receives only approved context.
         if (documents.Count == 0)
         {
             return new AnswerDraft(InsufficientApprovedInformationMessage, []);
         }
 
+        // AzureFoundry generates an answer only from approved documents passed here.
         var prompt = _promptBuilder.Build(question, documents);
         var endpoint = BuildChatCompletionsEndpoint();
         var requestBody = new
@@ -80,9 +85,15 @@ public sealed class AzureFoundryAnswerService : IAnswerService
             _logger.LogError(
                 "AzureFoundry answer generation failed with status {StatusCode}.",
                 (int)response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            _logger.LogError(
+                "AzureFoundry error. Status={StatusCode}. Body={Body}",
+                (int)response.StatusCode,
+                body);
 
             throw new InvalidOperationException(
-                $"AzureFoundry answer generation failed with status {(int)response.StatusCode}.");
+                $"AzureFoundry answer generation failed. Status={(int)response.StatusCode}. Body={body}");
         }
 
         var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -103,23 +114,48 @@ public sealed class AzureFoundryAnswerService : IAnswerService
                 ? "2024-10-21"
                 : _options.ApiVersion);
 
-        return new Uri($"{baseEndpoint}/openai/deployments/{deploymentName}/chat/completions?api-version={apiVersion}");
+        var endpoint =
+            $"{baseEndpoint}/openai/deployments/{deploymentName}/chat/completions?api-version={apiVersion}";
+
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
+        {
+            throw new InvalidOperationException(
+                "AzureFoundry answer provider is selected, but Endpoint is not a valid absolute URI.");
+        }
+
+        return uri;
     }
 
     private static string ExtractAnswer(string responseContent)
     {
-        using var document = JsonDocument.Parse(responseContent);
-
-        var choices = document.RootElement.GetProperty("choices");
-        if (choices.GetArrayLength() == 0)
+        try
         {
-            return InsufficientApprovedInformationMessage;
-        }
+            using var document = JsonDocument.Parse(responseContent);
 
-        return choices[0]
-            .GetProperty("message")
-            .GetProperty("content")
-            .GetString()
-            ?? InsufficientApprovedInformationMessage;
+            if (!document.RootElement.TryGetProperty("choices", out var choices) ||
+                choices.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidOperationException(UnexpectedResponseMessage);
+            }
+
+            if (choices.GetArrayLength() == 0)
+            {
+                return InsufficientApprovedInformationMessage;
+            }
+
+            var firstChoice = choices[0];
+            if (!firstChoice.TryGetProperty("message", out var message) ||
+                !message.TryGetProperty("content", out var content) ||
+                content.ValueKind != JsonValueKind.String)
+            {
+                throw new InvalidOperationException(UnexpectedResponseMessage);
+            }
+
+            return content.GetString() ?? InsufficientApprovedInformationMessage;
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException(UnexpectedResponseMessage);
+        }
     }
 }
