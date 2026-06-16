@@ -108,3 +108,4 @@ ai-cache/
 .terraform/
 *.tfstate
 *.tfstate.*
+/~$moScreenShots.docx
