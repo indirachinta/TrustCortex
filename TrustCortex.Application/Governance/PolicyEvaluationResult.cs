@@ -8,4 +8,5 @@ public sealed record PolicyEvaluationResult(
     int DocumentsRetrieved,
     int DocumentsApproved,
     int DocumentsBlocked,
-    string? BlockedReason);
+    string? BlockedReason,
+    IReadOnlyList<AuditGovernanceMetadata> GovernanceMetadata);

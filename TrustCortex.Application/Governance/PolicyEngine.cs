@@ -5,22 +5,45 @@ namespace TrustCortex.Application.Governance;
 
 public sealed class PolicyEngine : IPolicyEngine
 {
-    private static readonly IReadOnlyDictionary<string, string[]> AllowedSensitivities =
-        new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+    private static readonly IReadOnlyDictionary<string, GovernanceClassification[]> AllowedClassifications =
+        new Dictionary<string, GovernanceClassification[]>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Engineer"] = ["Public", "Internal"],
-            ["Manager"] = ["Public", "Internal", "Confidential"],
-            ["ComplianceOfficer"] = ["Public", "Internal", "Confidential", "Restricted"]
+            ["Engineer"] =
+            [
+                GovernanceClassification.Public,
+                GovernanceClassification.Internal
+            ],
+            ["ComplianceOfficer"] =
+            [
+                GovernanceClassification.Public,
+                GovernanceClassification.Internal,
+                GovernanceClassification.Confidential,
+                GovernanceClassification.HighlyConfidential
+            ]
         };
 
-    public PolicyEvaluationResult Evaluate(string userRole, IReadOnlyList<SearchDocument> documents)
+    public PolicyEvaluationResult Evaluate(
+        string userRole,
+        IReadOnlyList<SearchDocument> documents,
+        IReadOnlyDictionary<string, GovernanceMetadata> metadataByDocumentId)
     {
-        var allowed = AllowedSensitivities.TryGetValue(userRole, out var sensitivities)
-            ? sensitivities
-            : Array.Empty<string>();
+        var allowed = AllowedClassifications.TryGetValue(userRole, out var classifications)
+            ? classifications
+            : Array.Empty<GovernanceClassification>();
 
         var allowedDocuments = documents
-            .Where(document => allowed.Contains(document.Sensitivity, StringComparer.OrdinalIgnoreCase))
+            .Where(document =>
+                metadataByDocumentId.TryGetValue(document.Id, out var metadata) &&
+                allowed.Contains(metadata.Classification))
+            .ToArray();
+        var allowedDocumentIds = allowedDocuments
+            .Select(document => document.Id)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var governanceMetadata = documents
+            .Select(document => ToAuditGovernanceMetadata(
+                document,
+                metadataByDocumentId,
+                allowedDocumentIds))
             .ToArray();
 
         var blockedCount = documents.Count - allowedDocuments.Length;
@@ -31,6 +54,28 @@ public sealed class PolicyEngine : IPolicyEngine
             DocumentsRetrieved: documents.Count,
             DocumentsApproved: allowedDocuments.Length,
             DocumentsBlocked: blockedCount,
-            BlockedReason: blockedCount > 0 ? "RestrictedSensitivity" : null);
+            BlockedReason: blockedCount > 0 ? "ClassificationPolicy" : null,
+            GovernanceMetadata: governanceMetadata);
+    }
+
+    private static AuditGovernanceMetadata ToAuditGovernanceMetadata(
+        SearchDocument document,
+        IReadOnlyDictionary<string, GovernanceMetadata> metadataByDocumentId,
+        ISet<string> allowedDocumentIds)
+    {
+        if (!metadataByDocumentId.TryGetValue(document.Id, out var metadata))
+        {
+            return new AuditGovernanceMetadata(
+                document.Id,
+                "Missing",
+                "Missing",
+                "Blocked");
+        }
+
+        return new AuditGovernanceMetadata(
+            document.Id,
+            metadata.Classification.ToString(),
+            metadata.SourceSystem,
+            allowedDocumentIds.Contains(document.Id) ? "Approved" : "Blocked");
     }
 }

@@ -4,6 +4,7 @@ using TrustCortex.Application.Interfaces;
 using TrustCortex.Infrastructure.Answers;
 using TrustCortex.Infrastructure.Audit;
 using TrustCortex.Infrastructure.Mocks;
+using TrustCortex.Infrastructure.Purview;
 using TrustCortex.Infrastructure.Safety;
 using TrustCortex.Infrastructure.Search;
 
@@ -64,6 +65,7 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IPromptSafetyService, PromptSafetyService>();
+        services.AddSingleton<IPurviewMetadataProvider, MockPurviewMetadataProvider>();
         services.AddSingleton<IAuditLogger, InMemoryAuditLogger>();
 
         return services;

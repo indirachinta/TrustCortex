@@ -1,0 +1,50 @@
+[
+  {
+    "DocumentId": "doc-001",
+    "Classification": "Internal",
+    "SourceSystem": "Purview",
+    "OwnerDepartment": "Security",
+    "RetentionPolicy": "Standard-5Years",
+    "LastReviewedDate": "2026-06-01"
+  },
+  {
+    "DocumentId": "doc-002",
+    "Classification": "HighlyConfidential",
+    "SourceSystem": "Purview",
+    "OwnerDepartment": "Compliance",
+    "RetentionPolicy": "Restricted-7Years",
+    "LastReviewedDate": "2026-06-01"
+  },
+  {
+    "DocumentId": "doc-public",
+    "Classification": "Public",
+    "SourceSystem": "Purview",
+    "OwnerDepartment": "Engineering",
+    "RetentionPolicy": "Standard-3Years",
+    "LastReviewedDate": "2026-06-01"
+  },
+  {
+    "DocumentId": "doc-internal",
+    "Classification": "Internal",
+    "SourceSystem": "Purview",
+    "OwnerDepartment": "Security",
+    "RetentionPolicy": "Standard-5Years",
+    "LastReviewedDate": "2026-06-01"
+  },
+  {
+    "DocumentId": "doc-confidential",
+    "Classification": "Confidential",
+    "SourceSystem": "Purview",
+    "OwnerDepartment": "Operations",
+    "RetentionPolicy": "Standard-5Years",
+    "LastReviewedDate": "2026-06-01"
+  },
+  {
+    "DocumentId": "doc-restricted",
+    "Classification": "HighlyConfidential",
+    "SourceSystem": "Purview",
+    "OwnerDepartment": "Finance",
+    "RetentionPolicy": "Restricted-7Years",
+    "LastReviewedDate": "2026-06-01"
+  }
+]

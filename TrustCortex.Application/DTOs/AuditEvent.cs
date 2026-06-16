@@ -9,4 +9,5 @@ public sealed record AuditEvent(
     int DocumentsApproved,
     int DocumentsBlocked,
     string? BlockedReason,
-    bool ResponseGrounded);
+    bool ResponseGrounded,
+    IReadOnlyList<AuditGovernanceMetadata> GovernanceMetadata);

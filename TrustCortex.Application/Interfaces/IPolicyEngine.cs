@@ -5,5 +5,8 @@ namespace TrustCortex.Application.Interfaces;
 
 public interface IPolicyEngine
 {
-    PolicyEvaluationResult Evaluate(string userRole, IReadOnlyList<SearchDocument> documents);
+    PolicyEvaluationResult Evaluate(
+        string userRole,
+        IReadOnlyList<SearchDocument> documents,
+        IReadOnlyDictionary<string, GovernanceMetadata> metadataByDocumentId);
 }

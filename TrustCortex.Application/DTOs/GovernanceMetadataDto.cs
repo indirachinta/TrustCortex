@@ -8,4 +8,6 @@ public sealed record GovernanceMetadataDto(
     int DocumentsBlocked,
     string? BlockedReason,
     bool ResponseGrounded,
-    bool AuditLogged);
+    bool AuditLogged,
+    string? ClassificationSource = null,
+    string? EvaluatedClassification = null);

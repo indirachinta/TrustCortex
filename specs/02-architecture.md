@@ -1,29 +1,36 @@
-# TrustCortex Architecture
+# Architecture Overview
 
-TrustCortex implements a governed RAG lifecycle. Governance is applied across
-multiple runtime stages; it is not a single pre-retrieval gate.
+TrustCortex is a governance-first enterprise AI platform for secure retrieval
+augmented generation on Azure. The final V6 architecture separates enterprise
+retrieval, metadata-driven governance, answer generation, response validation,
+and audit logging into explicit runtime stages.
 
-## Runtime Flow
+Azure AI Search retrieves candidate documents. TrustCortex resolves
+Purview-inspired metadata, evaluates role and classification policy, constructs
+approved context, validates responses, and records audit evidence. Azure AI
+Foundry generates answers only from approved context supplied by TrustCortex.
+
+# Runtime Flow
 
 User Question
   |
   v
-Input Safety / Prompt Validation
+Prompt Validation
   |
   v
-Enterprise Retrieval
+Azure AI Search
   |
   v
-Retrieved Documents
+Purview Metadata Resolution
   |
   v
-Policy + Governance Filtering
+Governance Evaluation
   |
   v
 Approved Context
   |
   v
-Answer Generation
+Azure AI Foundry
   |
   v
 Response Validation
@@ -34,118 +41,104 @@ Audit Logging
   v
 Governed Response
 
-## Component Responsibilities
+# Component Responsibilities
 
-- React UI / Swagger sends the user question to the ASP.NET Core API.
-- The API validates the prompt before retrieval to block unsafe or policy-bypass
-  attempts.
-- Enterprise retrieval uses Azure AI Search or Mock Search to return candidate
-  documents.
-- Policy and governance filtering runs after retrieval, using document metadata
-  such as sensitivity level and allowed roles.
-- Only approved context is passed to answer generation.
-- Response validation checks the generated answer before it is returned.
-- Audit logging records the decision trail after answer generation and
-  validation.
+## Prompt Validation
 
-## V3 Answer Generation Architecture
+Validates the user question before retrieval. Blocks unsafe prompts,
+policy-bypass attempts, and prompt injection patterns before enterprise
+documents are retrieved.
 
-V3 introduces a provider-based answer generation layer.
+## Azure AI Search
 
-- Azure AI Search is the retrieval layer. It returns candidate enterprise
-  documents for the user's question.
-- TrustCortex governance sits between retrieval and answer generation. It
-  filters retrieved documents using policy metadata and produces approved
-  context.
-- Foundry/OpenAI is the reasoning layer. It should only receive the user's
-  question plus approved context that already passed TrustCortex governance.
-- MockAnswerService remains the default answer provider for cost safety.
+Retrieves candidate enterprise documents for the user question. Azure AI Search
+does not decide whether the user is authorized to use each retrieved document.
 
-TrustCortex should not use Azure OpenAI "On Your Data" directly in V3 because
-that would let the model service perform retrieval internally. V3 keeps
-retrieval in the Application flow so document-level governance can run before
-any content is sent to the answer generation provider.
+## Purview Metadata Resolution
 
-Provider selection is configuration-driven:
+Resolves governance metadata for each retrieved document. Metadata includes
+classification, source system, owner department, retention policy, and last
+reviewed date. In V6, the metadata source is Purview-inspired sample metadata.
 
-- AnswerProvider = Mock uses MockAnswerService.
-- AnswerProvider = AzureFoundry uses AzureFoundryAnswerService.
+## Governance Evaluation
 
-## V4 Runtime Readiness Architecture
+Applies TrustCortex policy rules to the resolved metadata. Documents are
+approved or blocked based on the user's role and each document's governance
+classification.
 
-V4 prepares TrustCortex for final demo execution using explicit provider modes.
+## Approved Context Construction
 
-Runtime modes:
+Builds the context sent to the answer provider using only documents approved by
+governance evaluation. Blocked documents are excluded completely.
 
-- Local Safe Mode: SearchProvider = Mock, AnswerProvider = Mock.
-- Azure Retrieval Mode: SearchProvider = Azure, AnswerProvider = Mock.
-- Full Azure AI Mode: SearchProvider = Azure, AnswerProvider = AzureFoundry.
+## Azure AI Foundry
 
-Design responsibilities:
+Generates a grounded answer using only the approved context provided by
+TrustCortex. Azure AI Foundry does not perform hidden retrieval or policy
+filtering.
 
-- Azure AI Search is responsible for retrieval only.
-- Azure Foundry / Azure OpenAI is responsible for answer generation only.
-- TrustCortex owns governance orchestration between retrieval and answer
-  generation.
-- Blocked documents must never be sent to the answer generation provider.
-- Mock provider defaults must remain available for cost-controlled local
-  execution.
-- Runtime diagnostics should expose selected providers without exposing
-  Endpoint, ApiKey, DeploymentName, or other secrets.
+## Response Validation
 
-Final demo flow:
+Checks that the generated answer is grounded in approved context and does not
+introduce unsupported claims.
 
-User Question
-  |
-  v
-Input Safety / Prompt Validation
-  |
-  v
-Azure AI Search or Mock Retrieval
-  |
-  v
-Retrieved Documents
-  |
-  v
-Policy + Governance Filtering
-  |
-  v
-Approved Context
-  |
-  v
-Mock or AzureFoundry Answer Generation
-  |
-  v
-Response Validation
-  |
-  v
-Audit Logging
-  |
-  v
-Governed Response
+## Audit Logging
 
-## V5 Real Azure Execution Architecture
+Records the decision trail for prompt safety, retrieval, metadata resolution,
+policy evaluation, response validation, and final governance outcome. Audit
+records include classification, source system, and policy decision details.
 
-V5 prepares TrustCortex to run in full Azure AI mode:
+# Governance Principles
 
-- SearchProvider = Azure
-- AnswerProvider = AzureFoundry
+- Governance before generation.
+- Approved-context-only prompting.
+- Metadata-driven authorization.
+- Role-based access control.
+- Auditability.
 
-Azure AI Search retrieves candidate enterprise documents. TrustCortex then
-applies input safety, role and sensitivity filtering, approved context
-construction, response validation, and audit logging. Azure Foundry / Azure
-OpenAI performs answer generation only and must receive only approved context
-from TrustCortex.
+# Azure Service Responsibilities
 
-V5 must not use Azure OpenAI "On Your Data". TrustCortex must control retrieval
-and filtering before model generation so governance remains between enterprise
-retrieval and answer generation.
+## Azure AI Search
 
-## V1 Scope
+Enterprise retrieval only.
 
-V1 uses:
-- local policy metadata
-- mock search service
-- mock answer generation
-- Azure AI Search Free tier
-- Azure Content Safety resource
+## Azure AI Foundry
+
+Answer generation only.
+
+## TrustCortex
+
+Governance orchestration.
+
+TrustCortex owns prompt validation, metadata resolution, policy evaluation,
+approved context construction, response validation, and audit logging.
+
+# Why TrustCortex Does Not Use Azure OpenAI On Your Data
+
+TrustCortex does not use Azure OpenAI On Your Data because retrieval and
+governance must remain visible and enforceable before model generation.
+
+Using On Your Data directly would move retrieval inside the model call. That
+reduces TrustCortex's ability to inspect candidate documents, resolve governance
+metadata, apply role-based policy, block unauthorized context, and audit exactly
+which content was approved or denied.
+
+By controlling retrieval and filtering before answer generation, TrustCortex
+ensures that Azure AI Foundry receives only approved context. This preserves
+governance visibility, policy enforcement, and auditability.
+
+# Example Request Lifecycle
+
+An Engineer requests a HighlyConfidential payroll report.
+
+1. Prompt Validation accepts the question as safe.
+2. Azure AI Search retrieves the payroll report as a candidate document.
+3. Purview Metadata Resolution identifies the document classification as
+   HighlyConfidential.
+4. Governance Evaluation compares the classification against the Engineer role.
+5. The policy denies access because Engineers can access only Public and
+   Internal documents.
+6. Approved Context Construction excludes the payroll report.
+7. Azure AI Foundry receives no restricted payroll content.
+8. Response Validation and Audit Logging record the governed denial and the
+   metadata-driven policy decision.

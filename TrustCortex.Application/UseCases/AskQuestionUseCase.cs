@@ -37,7 +37,8 @@ public sealed class AskQuestionUseCase(
                 governance.PolicyEvaluation.DocumentsApproved,
                 governance.PolicyEvaluation.DocumentsBlocked,
                 governance.PolicyEvaluation.BlockedReason,
-                validation.IsGrounded),
+                validation.IsGrounded,
+                governance.PolicyEvaluation.GovernanceMetadata),
             cancellationToken);
 
         return new AskResponse(
@@ -51,6 +52,42 @@ public sealed class AskQuestionUseCase(
                 DocumentsBlocked: governance.PolicyEvaluation.DocumentsBlocked,
                 BlockedReason: governance.PolicyEvaluation.BlockedReason,
                 ResponseGrounded: validation.IsGrounded,
-                AuditLogged: auditLogged));
+                AuditLogged: auditLogged,
+                ClassificationSource: GetClassificationSource(governance.PolicyEvaluation.GovernanceMetadata),
+                EvaluatedClassification: GetEvaluatedClassification(governance.PolicyEvaluation.GovernanceMetadata)));
+    }
+
+    private static string? GetClassificationSource(
+        IReadOnlyList<AuditGovernanceMetadata> governanceMetadata)
+    {
+        return governanceMetadata
+            .Select(metadata => metadata.SourceSystem)
+            .FirstOrDefault(sourceSystem =>
+                !string.IsNullOrWhiteSpace(sourceSystem) &&
+                !string.Equals(sourceSystem, "Missing", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string? GetEvaluatedClassification(
+        IReadOnlyList<AuditGovernanceMetadata> governanceMetadata)
+    {
+        return governanceMetadata
+            .Select(metadata => metadata.Classification)
+            .Where(classification =>
+                !string.IsNullOrWhiteSpace(classification) &&
+                !string.Equals(classification, "Missing", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(GetClassificationRank)
+            .FirstOrDefault();
+    }
+
+    private static int GetClassificationRank(string classification)
+    {
+        return classification switch
+        {
+            "HighlyConfidential" => 4,
+            "Confidential" => 3,
+            "Internal" => 2,
+            "Public" => 1,
+            _ => 0
+        };
     }
 }

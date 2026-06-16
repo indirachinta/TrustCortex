@@ -1,0 +1,16 @@
+[
+  {
+    "documentId": "doc-001",
+    "classification": "Internal",
+    "sourceSystem": "Purview",
+    "ownerDepartment": "Security",
+    "retentionPolicy": "5 Years"
+  },
+  {
+    "documentId": "doc-002",
+    "classification": "HighlyConfidential",
+    "sourceSystem": "Purview",
+    "ownerDepartment": "Payroll",
+    "retentionPolicy": "7 Years"
+  }
+]

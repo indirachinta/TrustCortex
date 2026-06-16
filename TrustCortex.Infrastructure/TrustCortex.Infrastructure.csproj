@@ -6,6 +6,10 @@
     <ProjectReference Include="..\TrustCortex.Application\TrustCortex.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\sample-data\purview-metadata.json" Link="sample-data\purview-metadata.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
