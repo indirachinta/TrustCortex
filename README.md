@@ -97,15 +97,34 @@ Stage responsibilities:
 
 # Azure Services Used
 
+Implemented:
+
 - Azure AI Search
 - Azure AI Foundry
 - Azure OpenAI Deployments
+
+Governance Simulation:
+
+- Purview-inspired metadata governance model
+
+Planned Integration:
+
+- Microsoft Purview
 
 # Governance Model
 
 TrustCortex V6 uses metadata-driven governance inspired by Microsoft Purview.
 Documents are evaluated using governance metadata, not only local sensitivity
 fields.
+
+TrustCortex V6 currently uses a Purview-inspired governance model. Governance
+metadata is resolved through local metadata providers. The architecture
+simulates how Microsoft Purview classifications would be consumed by governance
+policy evaluation.
+
+A dedicated metadata resolution layer exists so Microsoft Purview can be
+integrated later without changing retrieval, governance, or answer generation
+workflows.
 
 Supported classifications:
 
@@ -188,9 +207,27 @@ development and demos.
 - [V6 Demonstration Scenarios](V6-DEMO-SCENARIOS.md)
 - [V5 Demo Guide](DEMO.md)
 
+# Current Scope
+
+TrustCortex demonstrates:
+
+- Azure AI Search enterprise retrieval
+- Azure AI Foundry answer generation
+- Metadata-driven governance
+- Role-based access control
+- Approved-context-only prompting
+- Response validation
+- Audit logging
+
+TrustCortex currently simulates Microsoft Purview metadata using local
+governance providers. Direct Microsoft Purview integration is intentionally
+left as a future enhancement to keep the project cost-effective and focused on
+governance architecture patterns.
+
 # Future Enhancements
 
-- Microsoft Purview Integration
+- Microsoft Purview Integration (replace simulated metadata provider with live
+  Purview classifications)
 - Azure AI Content Safety
-- Application Insights
-- Evaluation Pipelines
+- Application Insights Telemetry
+- Azure AI Evaluation Pipelines
